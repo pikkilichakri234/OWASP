@@ -1,0 +1,48 @@
+name: Dependency Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dependency-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Java (necessary for Dependency-Check)
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+
+      # Install OWASP Dependency-Check
+      - name: Install OWASP Dependency-Check
+        run: |
+          wget https://github.com/jeremylong/DependencyCheck/releases/download/v6.4.0/dependency-check-6.4.0-release.zip
+          unzip dependency-check-6.4.0-release.zip
+          mv dependency-check-6.4.0 /usr/local/bin/dependency-check
+
+      # Run Dependency-Check to scan the dependencies
+      - name: Run OWASP Dependency-Check
+        run: |
+          # Run Dependency-Check on your project (assuming it's a Maven or Gradle project)
+          /usr/local/bin/dependency-check/bin/dependency-check.sh --project your_project_name --scan ./ --out ./dependency-check-report
+          
+      # Upload the Dependency-Check report as an artifact
+      - name: Upload Dependency-Check Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: ./dependency-check-report/*
+          
+      # Optionally, output the results
+      - name: Display Dependency-Check Report
+        run: cat ./dependency-check-report/dependency-check-report.html
